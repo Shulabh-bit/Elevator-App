@@ -19,7 +19,7 @@ namespace ElevatorApp
 
         public void RaiseTick() { if (Ticked != null) Ticked(); }
 
-        // Hall call: elevator with the shortest estimated response time
+        
         public Elevator DispatchHallCall(int floor)
         {
             Elevator best = Elevators.OrderBy(e => e.EstimateTime(floor)).First();
@@ -27,7 +27,7 @@ namespace ElevatorApp
             return best;
         }
 
-        // Cabin request: only that elevator
+        
         public void CabinRequest(int elevatorIndex, int floor)
         {
             Elevators[elevatorIndex].Enqueue(floor, "Cabin request floor " + floor);

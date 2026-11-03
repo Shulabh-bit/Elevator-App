@@ -9,11 +9,11 @@ namespace ElevatorApp
     {
         private static readonly object Sync = new object();
 
-        // Change this only if you use a full SQL Server instance, e.g. @".\SQLEXPRESS"
+        
         private const string Server = @"(localdb)\MSSQLLocalDB";
         private const string DbName = "ElevatorLogDB";
 
-        // Relative path: next to the executable
+        
         private static readonly string MdfPath =
             Path.Combine(AppContext.BaseDirectory, "Data", DbName + ".mdf");
 
@@ -37,7 +37,7 @@ namespace ElevatorApp
                 {
                     conn.Open();
 
-                    // Is the database already registered, and where does its file live?
+                    
                     object registered;
                     using (var cmd = new SqlCommand(
                         "SELECT physical_name FROM sys.master_files WHERE database_id = DB_ID(@n) AND type = 0", conn))
@@ -46,7 +46,7 @@ namespace ElevatorApp
                         registered = cmd.ExecuteScalar();
                     }
 
-                    // Registered with an old path (e.g. project folder moved): detach it, keep the files
+                    
                     if (registered != null &&
                         !string.Equals((string)registered, MdfPath, StringComparison.OrdinalIgnoreCase))
                     {
@@ -82,7 +82,7 @@ namespace ElevatorApp
             }
         }
 
-        // One helper builds the adapter, so there is no duplicated DB code
+       
         private static T WithAdapter<T>(string select, Func<SqlDataAdapter, DataTable, T> work)
         {
             try
@@ -120,7 +120,7 @@ namespace ElevatorApp
                     r["Status"] = status;
                     r["LoggedAt"] = DateTime.Now;
                     table.Rows.Add(r);
-                    adapter.Update(table);   // disconnected model
+                    adapter.Update(table);   
                     return 0;
                 });
         }

@@ -1,5 +1,4 @@
-﻿using ElevatorApp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -64,8 +63,8 @@ namespace ElevatorApp
 
     public class DoorOpenState : ElevatorState
     {
-        private const int OpenTicks = 90;      // 90 ticks x 30 ms = 2.7 seconds
-        private const int ClosingTicks = 20;   // doors visibly close during the last 0.6 s
+        private const int OpenTicks = 90;
+        private const int ClosingTicks = 20;
         private int remaining;
 
         public override string Name { get { return "Door Open"; } }
@@ -79,12 +78,11 @@ namespace ElevatorApp
             if (--remaining <= 0) e.SetState(new IdleState());
         }
     }
-}
 
     // ---------- Context ----------
     public class Elevator
     {
-        public const double Speed = 0.04;     // floors per timer tick
+        public const double Speed = 0.04;
         public const double Epsilon = 0.0001;
 
         private readonly List<int> targets = new List<int>();
@@ -139,27 +137,26 @@ namespace ElevatorApp
             SetState(new DoorOpenState());
         }
 
-        // Estimated response time, counting everything already queued
-
         public void OpenDoorRequest()
         {
             if (State is DoorOpenState) { ((DoorOpenState)State).Extend(); Notify("Door held open"); }
             else if (State is IdleState) SetState(new DoorOpenState());
             else Notify("Door open rejected (lift moving)");
         }
+
+        public void CloseDoorRequest()
+        {
+            if (State is DoorOpenState) SetState(new IdleState());
+            else Notify("Door close ignored");
+        }
+
         public void HoldDoor()
         {
             var d = State as DoorOpenState;
             if (d != null) d.Extend();
         }
 
-        public void CloseDoorRequest()
-            {
-                if (State is DoorOpenState) SetState(new IdleState());
-                else Notify("Door close ignored");
-            }
-
-
+        // Estimated response time, counting everything already queued
         public double EstimateTime(int floor)
         {
             double t = State is DoorOpenState ? 0.5 : 0;
@@ -168,3 +165,4 @@ namespace ElevatorApp
             return t + Math.Abs(pos - floor);
         }
     }
+}

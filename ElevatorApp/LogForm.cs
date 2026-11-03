@@ -59,7 +59,7 @@ namespace ElevatorApp
                 ShowError);
         }
 
-        // One helper for every database change: run in background, then refresh the grid
+        
         private void RunThenReload(Func<int> work)
         {
             Background.Run(work, result => { if (!IsDisposed) Reload(); }, ShowError);

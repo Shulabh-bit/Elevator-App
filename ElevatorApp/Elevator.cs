@@ -4,17 +4,17 @@ using System.Linq;
 
 namespace ElevatorApp
 {
-    // ---------- Observer pattern ----------
+   
     public interface IElevatorObserver
     {
-        // logMessage == null -> just a position update (animation frame)
+        
         void ElevatorChanged(Elevator elevator, string logMessage);
     }
 
-    // Delegate used by the timer to animate every elevator (Task 4)
+    
     public delegate void TickHandler();
 
-    // ---------- State pattern ----------
+    
     public abstract class ElevatorState
     {
         public abstract string Name { get; }
@@ -79,7 +79,7 @@ namespace ElevatorApp
         }
     }
 
-    // ---------- Context ----------
+    
     public class Elevator
     {
         public const double Speed = 0.04;
@@ -156,7 +156,7 @@ namespace ElevatorApp
             if (d != null) d.Extend();
         }
 
-        // Estimated response time, counting everything already queued
+        
         public double EstimateTime(int floor)
         {
             double t = State is DoorOpenState ? 0.5 : 0;

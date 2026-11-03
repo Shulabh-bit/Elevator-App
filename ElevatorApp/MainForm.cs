@@ -7,8 +7,6 @@ namespace ElevatorApp
 {
     public class MainForm : Form, IElevatorObserver
     {
-        // One column per lift: a shaft with a door on floor 2 (up) and a door on floor 1 (down).
-        // The cabin moves inside the shaft, so you see it through the doors.
         private const int DoorW = 120, DoorH = 200;
         private const int Floor2Top = 62, Floor1Top = 338;
         private const int Floor2Bottom = Floor2Top + DoorH, Floor1Bottom = Floor1Top + DoorH;
@@ -21,22 +19,21 @@ namespace ElevatorApp
         private static readonly Font LedFont = new Font("Consolas", 10, FontStyle.Bold);
         private static readonly Font FloorFont = new Font("Segoe UI", 9, FontStyle.Bold);
 
-        private readonly Building building = new Building(2);   // two lifts
+        private readonly Building building = new Building(2);   
         private readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer { Interval = 30 };
         private readonly ToolTip tips = new ToolTip();
-        private readonly double[] doorOpen = new double[2];      // 0 = closed, 1 = open (outside door and cabin door together)
+        private readonly double[] doorOpen = new double[2];     
         private readonly Label[] leds = new Label[2];
         private readonly Label[] banners = new Label[2];
-        private readonly Label[] floorDisplays = new Label[3];   // index 1 and 2 = floor number
-        private readonly Button[] callButtons = new Button[3];   // index 1 and 2 = floor number
+        private readonly Label[] floorDisplays = new Label[3];  
+        private readonly Button[] callButtons = new Button[3];  
         private readonly Label[] callInfo = new Label[3];
-        private readonly bool[] callPending = new bool[3];       // a call is waiting for a lift
-        private readonly int[] callLift = new int[3];            // which lift was sent
+        private readonly bool[] callPending = new bool[3];      
+        private readonly int[] callLift = new int[3];           
         private BuildingView view;
         private Label statusLabel;
         private LogForm logForm;
 
-        // Double buffered panel so the animation does not flicker
         private class BuildingView : Panel
         {
             public BuildingView() { DoubleBuffered = true; ResizeRedraw = true; }
@@ -58,22 +55,21 @@ namespace ElevatorApp
             RefreshDisplays();
         }
 
-        // ---------------- Task 1: GUI ----------------
         private void BuildGui()
         {
             BackColor = Bg;
             ForeColor = Color.WhiteSmoke;
 
-            // Both lifts: shafts with the doors on floor 2 and floor 1 and the cabins inside
+           
             view = new BuildingView { Location = new Point(175, 40), Size = new Size(300, 590) };
             view.Paint += DrawBuilding;
             Controls.Add(view);
 
-            // Call buttons beside the doors, with a status display for each floor
+            
             AddCallButton("\u25B2", "Floor 2 - call a lift", 2, 150);
             AddCallButton("\u25B2", "Floor 1 - call a lift", 1, 426);
 
-            // One control panel for each lift
+            
             for (int i = 0; i < building.Elevators.Count; i++)
             {
                 var card = new Panel { Location = new Point(495, 40 + i * 290), Size = new Size(330, 270), BackColor = CardCol };
@@ -110,7 +106,7 @@ namespace ElevatorApp
                 card.Controls.Add(MakeButton("2", new Point(175, 140), new Size(140, 52),
                     Color.FromArgb(70, 80, 110), new int[] { i, 2 }, FloorButton_Click, 18));
 
-                // Door buttons: a drawn icon (arrows apart = open, arrows together = close) with a word under it
+                
                 var open = MakeDoorButton(true, new Point(85, 198), 50, Color.FromArgb(46, 160, 100), i, DoorOpen_Click);
                 var close = MakeDoorButton(false, new Point(195, 198), 50, Color.FromArgb(200, 70, 70), i, DoorClose_Click);
                 tips.SetToolTip(open, "Open door");
@@ -202,7 +198,7 @@ namespace ElevatorApp
             return b;
         }
 
-        // Round button with an arrow symbol
+        
         private Button MakeRoundButton(string text, Point loc, int size, Color color, object tag,
                                        EventHandler handler, float fontSize)
         {
@@ -214,7 +210,7 @@ namespace ElevatorApp
             return b;
         }
 
-        // Round door button whose icon is drawn: two arrows pointing apart = open, pointing together = close
+        
         private Button MakeDoorButton(bool openIcon, Point loc, int size, Color color, int lift, EventHandler handler)
         {
             Button b = MakeButton("", loc, new Size(size, size), color, lift, handler);
@@ -229,20 +225,20 @@ namespace ElevatorApp
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
             float cx = r.Width / 2f, cy = r.Height / 2f;
-            float h = r.Width * 0.20f;      // half height of an arrow
-            float len = r.Width * 0.24f;    // length of an arrow
-            float gap = r.Width * 0.07f;    // space between the arrow and the centre line
+            float h = r.Width * 0.20f;     
+            float len = r.Width * 0.24f;   
+            float gap = r.Width * 0.07f;   
             using (var white = new SolidBrush(Color.White))
             using (var bar = new Pen(Color.White, 3f))
             {
                 g.DrawLine(bar, cx, cy - h - 2, cx, cy + h + 2);
                 PointF[] left, right;
-                if (openIcon)       // arrows point away from the centre line
+                if (openIcon)       
                 {
                     left = new[] { new PointF(cx - gap, cy - h), new PointF(cx - gap, cy + h), new PointF(cx - gap - len, cy) };
                     right = new[] { new PointF(cx + gap, cy - h), new PointF(cx + gap, cy + h), new PointF(cx + gap + len, cy) };
                 }
-                else                // arrows point towards the centre line
+                else                
                 {
                     left = new[] { new PointF(cx - gap - len, cy - h), new PointF(cx - gap - len, cy + h), new PointF(cx - gap, cy) };
                     right = new[] { new PointF(cx + gap + len, cy - h), new PointF(cx + gap + len, cy + h), new PointF(cx + gap, cy) };
@@ -252,13 +248,13 @@ namespace ElevatorApp
             }
         }
 
-        // ---------------- positions ----------------
+        
         private static Rectangle DoorRect(int lift, int floor)
         {
             return new Rectangle(ColX[lift], floor == 2 ? Floor2Top : Floor1Top, DoorW, DoorH);
         }
 
-        // The cabin follows the lift's Position (1.0 to 2.0)
+       
         private Rectangle CabinRect(int i)
         {
             double t = (building.Elevators[i].Position - 1) / (Building.Floors - 1);
@@ -266,8 +262,7 @@ namespace ElevatorApp
             return new Rectangle(ColX[i], bottom - DoorH, DoorW, DoorH);
         }
 
-        // ---------------- drawing helpers ----------------
-        // Metal frame: only the ring around the opening, so the cabin stays visible through it
+       
         private static void DrawFrame(Graphics g, Rectangle opening)
         {
             Rectangle outer = Rectangle.Inflate(opening, 8, 8);
@@ -281,7 +276,7 @@ namespace ElevatorApp
             using (var p = new Pen(Color.FromArgb(70, 74, 84), 2)) g.DrawRectangle(p, opening);
         }
 
-        // Two sliding door leaves; open = 0 (closed) to 1 (fully open); alpha < 255 lets the cabin show through
+       
         private static void DrawLeaves(Graphics g, Rectangle opening, double open, int alpha)
         {
             int w = (int)Math.Round(opening.Width / 2.0 * (1 - open));
@@ -301,7 +296,7 @@ namespace ElevatorApp
             }
         }
 
-        // Warm light of the cabin interior, seen through the open doors
+       
         private static void DrawCabinLight(Graphics g, Rectangle opening)
         {
             using (var br = new LinearGradientBrush(opening, Color.FromArgb(252, 240, 208), Color.FromArgb(214, 188, 138), 90f))
@@ -313,7 +308,7 @@ namespace ElevatorApp
             return el.State is MovingUpState ? " \u25B2" : el.State is MovingDownState ? " \u25BC" : "";
         }
 
-        // ---------------- the building: shafts, cabins and doors ----------------
+        
         private void DrawBuilding(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -327,7 +322,7 @@ namespace ElevatorApp
                     Elevator el = building.Elevators[i];
                     g.DrawString("LIFT " + (i + 1), TitleFont, Brushes.White, new Rectangle(ColX[i], 2, DoorW, 22), sf);
 
-                    // 1. the shaft behind the doors, with guide rails
+                   
                     var shaft = new Rectangle(ColX[i] - 6, 30, DoorW + 12, 530);
                     using (var b = new SolidBrush(Color.FromArgb(12, 14, 20))) g.FillRectangle(b, shaft);
                     using (var rail = new Pen(Color.FromArgb(50, 56, 72), 2))
@@ -336,7 +331,7 @@ namespace ElevatorApp
                         g.DrawLine(rail, shaft.Right - 4, shaft.Y, shaft.Right - 4, shaft.Bottom);
                     }
 
-                    // 2. the cabin, hanging from its cable
+                   
                     Rectangle car = CabinRect(i);
                     using (var cable = new Pen(Color.Gray, 2))
                         g.DrawLine(cable, car.X + car.Width / 2, shaft.Y, car.X + car.Width / 2, car.Y);
@@ -351,25 +346,24 @@ namespace ElevatorApp
                     g.DrawString("LIFT " + el.Id + ArrowOf(el), TitleFont, Brushes.White,
                         new Rectangle(car.X, car.Y + 2, car.Width, 26), sf);
 
-                    // the cabin's own door: it opens together with the outside door
+                    
                     var inner = new Rectangle(car.X + 12, car.Y + 30, car.Width - 24, car.Height - 42);
                     if (doorOpen[i] > 0.01) DrawCabinLight(g, inner);
                     else using (var dark = new SolidBrush(Color.FromArgb(40, 44, 54))) g.FillRectangle(dark, inner);
                     DrawLeaves(g, inner, doorOpen[i], 255);
                     using (var frame = new Pen(Color.FromArgb(50, 54, 62), 1)) g.DrawRectangle(frame, inner);
 
-                    // 3. the outside doors in front, on floor 2 and floor 1
+                    
                     foreach (int floor in new[] { 2, 1 })
                     {
                         Rectangle opening = DoorRect(i, floor);
 
-                        // the door slides open only on the floor where this lift is standing
+                        
                         double open = (el.CurrentFloor == floor && Math.Abs(el.Position - floor) < 0.02) ? doorOpen[i] : 0;
 
                         DrawFrame(g, opening);
-                        DrawLeaves(g, opening, open, 165);   // see-through, so you can watch the cabin pass behind
-
-                        // red floor display above the door
+                        DrawLeaves(g, opening, open, 165);   
+                        
                         var disp = new Rectangle(opening.X + 10, opening.Y - 34, 100, 22);
                         g.FillRectangle(Brushes.Black, disp);
                         g.DrawString("FLOOR " + el.CurrentFloor + ArrowOf(el), LedFont, Brushes.Red, disp, sf);
@@ -381,12 +375,12 @@ namespace ElevatorApp
             }
         }
 
-        // ---------------- Task 2: event handlers ----------------
+       
         private void HallCall_Click(object sender, EventArgs e)
         {
             int floor = (int)((Button)sender).Tag;
-            Elevator chosen = building.DispatchHallCall(floor);     // nearest lift answers
-            callPending[floor] = true;                              // the button lights up until the lift arrives
+            Elevator chosen = building.DispatchHallCall(floor);     
+            callPending[floor] = true;                              
             callLift[floor] = chosen.Id;
             UpdateCallButtons();
         }
@@ -394,7 +388,7 @@ namespace ElevatorApp
         private void FloorButton_Click(object sender, EventArgs e)
         {
             int[] tag = (int[])((Button)sender).Tag;
-            building.CabinRequest(tag[0], tag[1]);                   // only that lift answers
+            building.CabinRequest(tag[0], tag[1]);                  
         }
 
         private void DoorOpen_Click(object sender, EventArgs e)
@@ -413,8 +407,7 @@ namespace ElevatorApp
             else { logForm.BringToFront(); logForm.Reload(); }
         }
 
-        // ---------------- Task 4: timer animation via delegate ----------------
-        // True when the cursor is on the open door or the cabin of this lift
+        
         private bool CursorOnLift(int i)
         {
             Elevator el = building.Elevators[i];
@@ -424,19 +417,19 @@ namespace ElevatorApp
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            building.RaiseTick();   // the delegate moves both cabins
+            building.RaiseTick();  
 
             for (int i = 0; i < building.Elevators.Count; i++)
             {
                 Elevator el = building.Elevators[i];
 
-                // cursor on a lift while its doors are open keeps them open
+                
                 if (el.State is DoorOpenState && CursorOnLift(i)) el.HoldDoor();
 
-                // doors slide open at the start and close during the last 0.6 s
+                
                 var doorState = el.State as DoorOpenState;
                 double target = (doorState != null && !doorState.IsClosing) ? 1 : 0;
-                doorOpen[i] += (target - doorOpen[i]) * 0.12;   // smooth door animation
+                doorOpen[i] += (target - doorOpen[i]) * 0.12;   
 
                 UpdateBanner(i);
             }
@@ -449,7 +442,7 @@ namespace ElevatorApp
             view.Invalidate();
         }
 
-        // ---------------- Observer callback ----------------
+       
         public void ElevatorChanged(Elevator elevator, string logMessage) { RefreshDisplays(); }
 
         private void UpdateBanner(int i)
@@ -483,7 +476,7 @@ namespace ElevatorApp
             view.Invalidate();
         }
 
-        // Orange button and "LIFT n IS COMING" while a call is waiting, blue again when the lift arrives
+       
         private void UpdateCallButtons()
         {
             for (int f = 1; f <= 2; f++)
